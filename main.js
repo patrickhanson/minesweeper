@@ -1,7 +1,6 @@
 const destination = document.getElementById('game')
 destination.addEventListener('click', makeMove)
 destination.addEventListener('contextmenu', addFlag)
-destination.addEventListener('click', countBombNeighbors)
 
 const flagCounter = document.getElementById('flagcount')
 const timerDestination = document.getElementById('timer')
@@ -14,7 +13,7 @@ document.oncontextmenu = function() {
 }
 
 const resultDestination = document.getElementById('boom')
-const neighborOffsets = {
+const neighborOffsets = Object.values({
     left: [0, -1],
     right: [0, 1],
     up: [-1, 0],
@@ -23,14 +22,9 @@ const neighborOffsets = {
     upRight: [-1, 1],
     downLeft: [1, -1],
     downRight: [1, 1],
-}
+})
 
 const boardElements = []
-const queue = []
-
-const gameInit = {
-    
-}
 
 function drawBoard() {
     const board = new Array(8).fill().map(() => new Array(8).fill())
@@ -46,13 +40,13 @@ function drawBoard() {
 
             cell.dataset.rowIndex = rowIndex
             cell.dataset.colIndex = colIndex
-            cell.classList.add('box')
-            cell.classList.add('emptybox')
-            cell.id = 'col-' + colIndex
+            cell.classList.add('box', 'emptybox')
             rowDiv.appendChild(cell)
         } 
         destination.appendChild(rowDiv)
     }
+
+    return boardElements
 }
 
 function bombBoard() {
@@ -60,45 +54,60 @@ function bombBoard() {
         const randomRowIndex = Math.floor(Math.random() * 8)
         const randomColIndex = Math.floor(Math.random() * 8)
         const targetCell = boardElements[randomRowIndex][randomColIndex]
-        if (targetCell.className === 'box emptybox') {
-            targetCell.classList.remove('emptybox')
-            targetCell.classList.add('bomb')
+        if (targetCell.classList.contains('box') && targetCell.classList.contains('emptybox')) {
+            targetCell.classList.replace('emptybox', 'bomb')
+            targetCell.isABomb = true
         } else {
             i--
         }
     } 
+
+    return boardElements
 }
 
-function countBombNeighbors(event) {
+function countBombNeighbors() {
     for (let rowIndex = 0; rowIndex < boardElements.length; rowIndex++) {
         for (let colIndex = 0; colIndex < boardElements[rowIndex].length; colIndex++) {
             const givenCell = boardElements[rowIndex][colIndex]
 
-            if (!givenCell.classList.contains('bomb')) {
-                for (let neighborOffset of Object.values(neighborOffsets)) {
+            if (!givenCell.isABomb) {
+                for (let neighborOffset of neighborOffsets) {
                     const neighborRowIndex = rowIndex + neighborOffset[0]
                     const neighborColIndex = colIndex + neighborOffset[1]
                     const neighborRow = boardElements[neighborRowIndex]
                     const neighborElement = neighborRow && neighborRow[neighborColIndex]
 
-                    if (neighborElement && neighborElement.classList.contains('bomb')) {
+                    if (neighborElement && neighborElement.isABomb) {
                         if (givenCell.textContent) {
-                            givenCell.textContent = Number(givenCell.textContent) + 1
+                            givenCell.bombCount = givenCell.textContent = Number(givenCell.textContent) + 1
+                            givenCell.style.color = "rgb(34, 12, 179)"
+                            givenCell.style.fontSize = '16px'
                         } else {
-                            givenCell.textContent = 1
+                            givenCell.bombCount = givenCell.textContent = 1
+                            givenCell.style.color = "rgb(34, 12, 179)"
+                            givenCell.style.fontSize = '14px'
                         }
                     }
                 }
             }
         }
     }
-    destination.removeEventListener('click', countBombNeighbors)
 }
 
-function makeMove() {
+function revealSquare(cell) {
+    cell.classList.remove('box')
+    cell.hasBeenClicked = true
+}
+
+function makeMove(event) {
     let cell = event.target
-    if(cell.className === 'box emptybox') {
-        cell.classList.remove('box')
+    if (cell.className === 'box emptybox') {
+        revealSquare(cell)
+
+        if (!cell.bombCount) {
+            fill(cell)
+        }
+
     } else if(cell.className === 'box bomb') {
         resultDestination.textContent = 'AYYYYY don\'t worry about that shit fam play again'
         let allBombs = document.querySelectorAll('.box.bomb')
@@ -110,9 +119,9 @@ function makeMove() {
     checkWin()
 }
 
-function addFlag() {
+function addFlag(event) {
     let cell = event.target
-    cell.classList.add('flag')
+    cell.classList.toggle('flag')
     flagCount()
     checkWin()
 }
@@ -120,10 +129,11 @@ function addFlag() {
 function checkWin() {
     let winCondition = document.querySelectorAll(".box.bomb.flag")
     let secondWinCondition = document.querySelectorAll(".box")
-    if(winCondition.length === 10) {
-        resultDestination.textContent = 'AYYYYYY LMAO'
+    let numberOfFlags = document.querySelectorAll('.flag')
+    if(winCondition.length === 10 && numberOfFlags.length === 10) {
+        resultDestination.textContent = 'AYYYYYY LMAO you win'
     } else if(secondWinCondition.length === 10) {
-        resultDestination.textContent = 'AYYYYYY LMAO'
+        resultDestination.textContent = 'AYYYYYY LMAO you win'
     }
 }
 
@@ -143,13 +153,46 @@ function flagCount() {
 
 function timesUp() {
     let time = 0
-    function timeCounter() {
+    function timeCounter(time) {
         time++
+        return time
     }
     let timer = setInterval(timeCounter, 1000)
-    timerDestination.textContent = String(time)
+    timerDestination.textContent = time
+    timerDestination.style.color = 'red'
+    timerDestination.style.fontSize = '30px'
+    timerDestination.style.fontWeight = 'bold'
 }
 
-drawBoard()
-bombBoard()
+function fill(cell) {
+    const queue = []
+    cell.hasBeenQueued = true
+    queue.push(cell)
+
+    while(queue.length) {
+        const cell = queue.shift()
+        const rowIndex = Number(cell.dataset.rowIndex)
+        const colIndex = Number(cell.dataset.colIndex)
+        
+        neighborOffsets.forEach(offset => {
+            const rowOffset = offset[0]
+            const colOffset = offset[1]
+            
+            const neighborRow = boardElements[rowIndex + rowOffset]
+            const neighborCell = neighborRow && neighborRow[colIndex + colOffset]
+
+            if (!neighborCell || neighborCell.hasBeenClicked || neighborCell.isABomb) return
+            
+            revealSquare(neighborCell)
+            
+            if (!neighborCell.hasBeenQueued && !neighborCell.bombCount) {
+                neighborCell.hasBeenQueued = true
+                queue.push(neighborCell)
+            }
+        })
+    }
+}
+
+countBombNeighbors(bombBoard(drawBoard()))
 flagCount()
+timesUp()

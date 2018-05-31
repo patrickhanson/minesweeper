@@ -1,5 +1,10 @@
 body {
     font-family: sans-serif;
+    background-image: url(spacebackground.jpg)
+}
+
+h1 {
+    color: white;
 }
 
 #game {
@@ -21,7 +26,7 @@ body {
 }
 
 #reset {
-    font-size: 25px;
+    font-size: 22px;
 }
 
 .row {
@@ -31,22 +36,23 @@ body {
 .box {
     width: 48px;
     height: 48px;
-    background-color: darkslategray;
+    background-color: rgb(34, 12, 179);
     border: solid 1px white;
 }
 
 .box.emptybox {
     width: 48px;
     height: 48px;
-    background-color: darkslategray;
+    background-color: rgb(34, 12, 179);
     border: solid 1px white;
 }
 
 .box.bomb {
     width: 48px;
     height: 48px;
-    background-color: darkslategray;
+    background-color: rgb(34, 12, 179);
     border: solid 1px white;
+    background-image: none;
 }
 
 .emptybox {
@@ -61,13 +67,23 @@ body {
     height: 48px;
     background-color: red;
     border: solid 1px white;
+    background-image: url(ufobomb.png)
 }
 
 .box.flag {
     width: 48px;
     height: 48px;
-    background-color: purple;
+    background-color: rgb(34, 12, 179);
     border: solid 1px white;
+    background-image: url(alienflag.png)
+}
+
+.bomb.flag {
+    width: 48px;
+    height: 48px;
+    background-color: rgb(34, 12, 179);
+    border: solid 1px white;
+    background-image: url(alienflag.png);
 }
 
 #boom {
