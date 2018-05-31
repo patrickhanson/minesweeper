@@ -1,3 +1,4 @@
+let timer = null
 const destination = document.getElementById('game')
 destination.addEventListener('click', makeMove)
 destination.addEventListener('contextmenu', addFlag)
@@ -6,6 +7,7 @@ const flagCounter = document.getElementById('flagcount')
 const timerDestination = document.getElementById('timer')
 
 const resetButton = document.getElementById('reset')
+
 resetButton.addEventListener('click', reset)
 
 document.oncontextmenu = function() {
@@ -115,6 +117,7 @@ function makeMove(event) {
             let bomb = allBombs[x]
             bomb.classList.remove('box')
         }
+        clearInterval(timer)
     }
     checkWin()
 }
@@ -132,8 +135,10 @@ function checkWin() {
     let numberOfFlags = document.querySelectorAll('.flag')
     if(winCondition.length === 10 && numberOfFlags.length === 10) {
         resultDestination.textContent = 'AYYYYYY LMAO you win'
+        clearInterval(timer)
     } else if(secondWinCondition.length === 10) {
         resultDestination.textContent = 'AYYYYYY LMAO you win'
+        clearInterval(timer)
     }
 }
 
@@ -151,14 +156,13 @@ function flagCount() {
     flagCounter.style.fontWeight = 'bold'
 }
 
+const timeCounter = () => timerDestination.textContent = time++
+let time = 0
+
 function timesUp() {
-    let time = 0
-    function timeCounter(time) {
-        time++
-        return time
-    }
-    let timer = setInterval(timeCounter, 1000)
-    timerDestination.textContent = time
+    
+
+    timer = window.setInterval(timeCounter, 1000)
     timerDestination.style.color = 'red'
     timerDestination.style.fontSize = '30px'
     timerDestination.style.fontWeight = 'bold'
