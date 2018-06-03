@@ -139,6 +139,15 @@ function checkWin() {
     } else if(secondWinCondition.length === 10) {
         resultDestination.textContent = 'AYYYYYY LMAO you win'
         clearInterval(timer)
+        let bombLocations = document.querySelectorAll('.box.bomb')
+        for(let i = 0; i < bombLocations.length; i++) {
+            let bombs = bombLocations[i]
+            if(bombs.classList.contains('flag')) {
+                continue
+            } else {
+                bombs.classList.remove('box')
+            }
+        }
     }
 }
 
